@@ -15,6 +15,7 @@
 import sys
 import locale
 import os
+import re
 import platform
 import shlex
 import subprocess
@@ -163,20 +164,56 @@ def ExtractFilesRecursive(path, cond):
                 files.append(os.path.join(r, file))
     return files
 
-def CodesignFiles(files):
-    SDKVersion  = subprocess.check_output(
-        ['xcodebuild', '-version']).strip()[6:10]
-    codeSignIDs = subprocess.check_output(
-        ['security', 'find-identity', '-vp', 'codesigning'])
+def _GetCodeSignStringFromTerminal():
+    codeSignIDs = GetCommandOutput(['security', 'find-identity', '-vp', 'codesigning'])
+    return codeSignIDs
 
-    codeSignID = "-"
+def GetCodeSignID():
     if os.environ.get('CODE_SIGN_ID'):
-        codeSignID = os.environ.get('CODE_SIGN_ID')
-    elif float(SDKVersion) >= 11.0 and \
-                codeSignIDs.find(b'Apple Development') != -1:
-        codeSignID = "Apple Development"
-    elif codeSignIDs.find(b'Mac Developer') != -1:
-        codeSignID = "Mac Developer"
+        return os.environ.get('CODE_SIGN_ID')
+
+    codeSignIDs = _GetCodeSignStringFromTerminal()
+    if not codeSignIDs:
+        return "-"
+    for codeSignID in codeSignIDs.splitlines():
+        if "CSSMERR_TP_CERT_REVOKED" in codeSignID:
+            continue
+        if ")" not in codeSignID:
+            continue
+        codeSignID = codeSignID.split()[1]
+        break
+    else:
+        raise RuntimeError("Could not find a valid codesigning ID")
+
+    return codeSignID or "-"
+
+def GetCodeSignIDHash():
+    codeSignIDs = _GetCodeSignStringFromTerminal()
+    try:
+        return re.findall(r'\(.*?\)', codeSignIDs)[0][1:-1]
+    except:
+        raise Exception("Unable to parse codesign ID hash")
+
+def GetDevelopmentTeamID():
+    if os.environ.get("DEVELOPMENT_TEAM"):
+        return os.environ.get("DEVELOPMENT_TEAM")
+    codesignID = GetCodeSignIDHash()
+
+    certs = subprocess.check_output(["security", "find-certificate", "-c", codesignID, "-p"])
+    subject = GetCommandOutput(["openssl", "x509", "-subject"], input=certs)
+    subject = subject.splitlines()[0]
+
+    # Extract the Organizational Unit (OU field) from the cert
+    try:
+        team = [elm for elm in subject.split(
+            '/') if elm.startswith('OU')][0].split('=')[1]
+        if team is not None and team != "":
+            return team
+    except Exception as ex:
+        raise Exception("No development team found with exception " + ex)
+
+def CodesignFiles(files):
+    codeSignID = GetCodeSignID()
 
     for f in files:
         subprocess.call(['codesign', '-f', '-s', '{codesignid}'
@@ -244,5 +281,11 @@ def ConfigureCMakeExtraArgs(context, args:List[str]) -> List[str]:
         args.append(f"-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH")
         args.append(f"-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=BOTH")
         args.append(f"-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=BOTH")
+
+
+    # Signing needs to happen on all systems
+    if context.macOSCodesign:
+        args.append(f"-DCMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY={GetCodeSignID()}")
+        args.append(f"-DCMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM={GetDevelopmentTeamID()}")
 
     return args
