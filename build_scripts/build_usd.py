@@ -1241,6 +1241,8 @@ def InstallOpenVDB(context, force, buildArgs):
         # OpenVDB needs Half type from IlmBase
         extraArgs.append('-DILMBASE_ROOT="{instDir}"'
                          .format(instDir=context.instDir))
+        extraArgs.append('-DBOOST_ROOT="{instDir}"'
+                         .format(instDir=context.instDir))
 
         # Add on any user-specified extra arguments.
         extraArgs += buildArgs
@@ -1287,6 +1289,7 @@ def InstallOpenImageIO(context, force, buildArgs):
         # system installed boost
         extraArgs.append('-DBoost_NO_BOOST_CMAKE=On')
         extraArgs.append('-DBoost_NO_SYSTEM_PATHS=True')
+        extraArgs.append('-DBOOST_ROOT="{instDir}"'.format(instDir=context.instDir))
 
         # OpenImageIO 2.3.5 changed the default postfix for debug library
         # names from "" to "_d". USD's build system currently does not support
