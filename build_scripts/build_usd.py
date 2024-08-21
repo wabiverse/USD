@@ -1529,9 +1529,7 @@ MATERIALX_URL = "https://github.com/materialx/MaterialX/archive/v1.38.10.zip"
 
 def InstallMaterialX(context, force, buildArgs):
     with CurrentWorkingDirectory(DownloadURL(MATERIALX_URL, context, force)):
-        cmakeOptions = ['-DMATERIALX_BUILD_SHARED_LIBS=ON',
-                        '-DMATERIALX_BUILD_TESTS=OFF'
-        ]
+        cmakeOptions = ['-DMATERIALX_BUILD_TESTS=OFF']
 
         if MacOSTargetEmbedded(context):
             # The materialXShaderGen in hdSt assumes the GLSL shadergen is available
@@ -1550,6 +1548,10 @@ def InstallMaterialX(context, force, buildArgs):
                         '        add_subdirectory(source/MaterialXRenderGlsl)\n' +
                         '    endif()')
                        ], multiLineMatches=True)
+        if MacOS() and context.buildAppleFramework and context.buildMonolithic:
+            cmakeOptions.extend(["-DMATERIALX_BUILD_SHARED_LIBS=OFF"])
+        else:
+            cmakeOptions.extend(["-DMATERIALX_BUILD_SHARED_LIBS=ON"])
 
         cmakeOptions += buildArgs
         RunCMake(context, force, cmakeOptions)
@@ -1974,8 +1976,7 @@ group = parser.add_argument_group(title="USD Options")
 (SHARED_LIBS, MONOLITHIC_LIB) = (0, 1)
 subgroup = group.add_mutually_exclusive_group()
 subgroup.add_argument("--build-shared", dest="build_type",
-                      action="store_const", const=SHARED_LIBS, 
-                      default=SHARED_LIBS,
+                      action="store_const", const=SHARED_LIBS,
                       help="Build individual shared libraries (default)")
 subgroup.add_argument("--build-monolithic", dest="build_type",
                       action="store_const", const=MONOLITHIC_LIB,
@@ -2236,7 +2237,7 @@ class InstallContext:
 
         self.debugPython = args.debug_python
 
-        self.buildShared = (args.build_type == SHARED_LIBS)
+        self.buildShared = (args.build_type == SHARED_LIBS or not args.build_type)
         self.buildMonolithic = (args.build_type == MONOLITHIC_LIB)
 
         self.ignorePaths = args.ignore_paths or []
@@ -2254,9 +2255,9 @@ class InstallContext:
             self.buildAppleFramework = ((args.build_apple_framework
                                          or self.buildTarget in apple_utils.EMBEDDED_PLATFORMS)
                                         and not args.no_build_apple_framework)
-            if self.buildAppleFramework:
-                self.buildShared = False
-                self.buildMonolithic = True
+            if self.buildAppleFramework and not args.build_type:
+                    self.buildShared = False
+                    self.buildMonolithic = True
         else:
             self.buildTarget = ""
 
@@ -2270,13 +2271,14 @@ class InstallContext:
 
         # Some components are disabled for embedded build targets
         embedded = MacOSTargetEmbedded(self)
+        optional_components = not (embedded or (MacOS() and self.buildAppleFramework))
 
         # Optional components
-        self.buildTests = args.build_tests and not embedded
-        self.buildPython = args.build_python and not embedded
-        self.buildExamples = args.build_examples and not embedded
-        self.buildTutorials = args.build_tutorials and not embedded
-        self.buildTools = args.build_tools and not embedded
+        self.buildTests = args.build_tests and optional_components
+        self.buildPython = args.build_python and optional_components
+        self.buildExamples = args.build_examples and optional_components
+        self.buildTutorials = args.build_tutorials and optional_components
+        self.buildTools = args.build_tools and optional_components
 
         # - Documentation
         self.buildDocs = args.build_docs or args.build_python_docs

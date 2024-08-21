@@ -64,6 +64,10 @@ if(APPLE)
             MESSAGE(STATUS "Setting PXR_BUILD_USD_TOOLS=OFF because PXR_BUILD_APPLE_FRAMEWORK is enabled.")
             set(PXR_BUILD_USD_TOOLS OFF)
         endif()
+        if(${PXR_ENABLE_PYTHON_SUPPORT})
+            MESSAGE(STATUS "Setting PXR_ENABLE_PYTHON_SUPPORT=OFF because PXR_BUILD_APPLE_FRAMEWORK is enabled.")
+            set(PXR_ENABLE_PYTHON_SUPPORT OFF)
+        endif ()
     endif()
 endif()
 
@@ -142,13 +146,19 @@ set(PXR_LIB_PREFIX ""
     "${helpstr}"
 )
 
-option(BUILD_SHARED_LIBS "Build shared libraries." ON)
-option(PXR_BUILD_MONOLITHIC "Build a monolithic library." OFF)
+set(pxr_build_monolithic_setting_default OFF)
+
 if (${PXR_BUILD_APPLE_FRAMEWORK})
     set(BUILD_SHARED_LIBS OFF)
-    set(PXR_BUILD_MONOLITHIC ON)
-    MESSAGE(STATUS "Setting PXR_BUILD_MONOLITHIC=ON for Framework build")
+    set(pxr_build_monolithic_setting_default ON)
 endif ()
+option(PXR_BUILD_MONOLITHIC "Build a monolithic library." ${pxr_build_monolithic_setting_default})
+if (${PXR_BUILD_MONOLITHIC})
+    set(pxr_build_shared_libs_setting_default OFF)
+endif()
+
+set(pxr_build_shared_libs_setting_default ON)
+option(BUILD_SHARED_LIBS "Build shared libraries." ${pxr_build_shared_libs_setting_default})
 
 set(PXR_MONOLITHIC_IMPORT ""
     CACHE
