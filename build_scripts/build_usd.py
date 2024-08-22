@@ -1916,6 +1916,8 @@ if MacOS():
                        help=("Build target for macOS cross compilation. "
                              "(default: {})".format(
                                 apple_utils.GetBuildTargetDefault())))
+    group.add_argument("--build-simulator", action="store_true",
+                       help="Build using the simulator SDK for embedded targets.")
     subgroup = group.add_mutually_exclusive_group()
     subgroup.add_argument("--build-apple-framework", dest="build_apple_framework", action="store_true",
                           help="Build USD as an Apple Framework (Default if using build)")
@@ -2245,6 +2247,7 @@ class InstallContext:
         if MacOS():
             self.buildTarget = args.build_target
             apple_utils.SetTarget(self, self.buildTarget)
+            self.buildSimulator = args.build_simulator
 
             self.macOSCodesign = False
             if args.macos_codesign:
@@ -2252,8 +2255,7 @@ class InstallContext:
             if apple_utils.IsHostArm() and args.ignore_homebrew:
                 self.ignorePaths.append("/opt/homebrew")
 
-            self.buildAppleFramework = ((args.build_apple_framework
-                                         or self.buildTarget in apple_utils.EMBEDDED_PLATFORMS)
+            self.buildAppleFramework = ((args.build_apple_framework or MacOSTargetEmbedded(self))
                                         and not args.no_build_apple_framework)
             if self.buildAppleFramework and not args.build_type:
                     self.buildShared = False

@@ -121,12 +121,21 @@ def SupportsMacOSUniversalBinaries():
     XcodeVersion = XcodeOutput[XcodeFind:].split(' ')[1]
     return (XcodeVersion > '11.0')
 
-def GetSDKRoot(context) -> Optional[str]:
+
+def GetSDKName(context) -> str:
     sdk = "macosx"
     if context.buildTarget == TARGET_IOS:
-        sdk = "iphoneos"
+        sdk = "iPhoneOS"
     elif context.buildTarget == TARGET_VISIONOS:
-        sdk = "xros"
+        sdk = "xrOS"
+
+    if TargetEmbeddedOS(context) and context.buildSimulator:
+        sdk = sdk[:-2] + "Simulator"
+
+    return sdk
+
+def GetSDKRoot(context) -> Optional[str]:
+    sdk = GetSDKName(context).lower()
 
     for arg in (context.cmakeBuildArgs or '').split():
         if "CMAKE_OSX_SYSROOT" in arg:
