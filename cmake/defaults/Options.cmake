@@ -56,7 +56,7 @@ if(APPLE)
         set(PXR_ENABLE_GL_SUPPORT OFF)
     endif ()
 
-    option(PXR_BUILD_APPLE_FRAMEWORK "Builds an Apple Framework." APPLE_EMBEDDED)
+    option(PXR_BUILD_APPLE_FRAMEWORK "Builds an Apple Framework." ${PXR_APPLE_EMBEDDED})
     set(PXR_APPLE_FRAMEWORK_NAME "OpenUSD" CACHE STRING "Name to provide Apple Framework build")
     set(PXR_APPLE_IDENTIFIER_DOMAIN "org.openusd" CACHE STRING "Name to provide Apple Framework build")
     if (${PXR_BUILD_APPLE_FRAMEWORK})

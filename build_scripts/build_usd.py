@@ -1053,6 +1053,9 @@ def InstallTBB_MacOS(context, force, buildArgs):
             if MacOSTargetEmbedded(context):
                 env["SDKROOT"] = apple_utils.GetSDKRoot(context)
                 buildArgs.append(f' compiler=clang arch=arm64 extra_inc=big_iron.inc target={context.buildTarget.lower()}')
+            if context.buildAppleFramework and context.buildMonolithic:
+                # Force build of static libs as well
+                buildArgs.append(f" extra_inc=big_iron.inc ")
             makeTBBCmd = 'make -j{procs} arch={arch} {buildArgs}'.format(
                 arch=arch, procs=context.numJobs,
                 buildArgs=" ".join(buildArgs))
