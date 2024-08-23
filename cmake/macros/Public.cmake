@@ -1326,11 +1326,18 @@ function(pxr_docs_only_dir NAME)
 endfunction() # pxr_docs_only_dir
 
 function(pxr_create_apple_framework)
-    # CMake can have a lot of different boolean representations, that need to be narrowed down
-    if (APPLE_EMBEDDED)
+    # CMake can have a lot of different boolean representations,
+    # that need to be narrowed down to a constant form for zsh
+    if (PXR_APPLE_EMBEDDED)
         set(EMBEDDED_BUILD "true")
     else()
         set(EMBEDDED_BUILD "false")
+    endif()
+
+    if (PXR_BUILD_MONOLITHIC)
+        set(MONOLITHIC_BUILD "true")
+    else()
+        set(MONOLITHIC_BUILD "false")
     endif()
 
     _get_library_prefix(LIB_PREFIX)
