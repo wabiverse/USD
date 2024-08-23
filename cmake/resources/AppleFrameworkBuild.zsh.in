@@ -122,7 +122,7 @@ install_name_tool -change "@rpath/${FRAMEWORK_NAME}.framework/Libraries/${FRAMEW
 
 # Sign the final framework
 echo "Codesigning the framework..."
-echo "codesign --force --sign ${CODESIGN_ID} ${FRAMEWORK_DIR} --generate-entitlement-der --identifier ${BUNDLE_IDENTIFIER} -vvv"
+set -e
 codesign --force --sign ${CODESIGN_ID} --generate-entitlement-der --identifier ${BUNDLE_IDENTIFIER} --verbose ${FRAMEWORK_DIR}
 
 echo "✅ Finished creating framework at ${FRAMEWORK_DIR}"
