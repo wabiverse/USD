@@ -2786,7 +2786,7 @@ if context.buildPrman:
 
 if context.buildAppleFramework:
     Print("""
-        Added the following framework to your Xcode Project, (recommended as Embed Without Signing):
+        Add the following framework to your Xcode Project:
         OpenUSD.framework
         
         Set the following compiler argument, to find the headers:

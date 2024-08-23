@@ -243,10 +243,9 @@ if(NOT TBB_FOUND)
       set(_lib_names_debug ${_lib_name}_debug)
 
       if (APPLE AND PXR_BUILD_MONOLITHIC AND PXR_BUILD_APPLE_FRAMEWORK)
-        # Prefer static names when building monolithic frameworks
-        # Possible that it might be worth doing this for
-        list(PREPEND _lib_names_release lib${_lib_name}.a)
-        list(PREPEND _lib_names_debug lib${_lib_name}_debug.a)
+        # When building a monolithic framework, it's best to take the static lib
+        set(_lib_names_release lib${_lib_name}.a)
+        set(_lib_names_debug lib${_lib_name}_debug.a)
       endif ()
 
       # Search for the libraries
