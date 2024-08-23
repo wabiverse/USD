@@ -109,10 +109,10 @@ fi
 
 # Setup symlinks
 if [ "$EMBEDDED_BUILD" = false ];then
-  (cd "${FRAMEWORK_DIR}/Versions" && ln -s "./A" "Current")
-  (cd ${FRAMEWORK_DIR} && ln -s "./Versions/Current/Resources" "Resources")
-  (cd ${FRAMEWORK_DIR} && ln -s "./Versions/Current/Headers" "Headers")
-  (cd ${FRAMEWORK_DIR} && ln -s "./Versions/Current/${FRAMEWORK_NAME}" ${FRAMEWORK_NAME})
+  (cd "${FRAMEWORK_DIR}/Versions" && ln -s "A" "Current")
+  (cd ${FRAMEWORK_DIR} && ln -s "Versions/Current/Resources" "Resources")
+  (cd ${FRAMEWORK_DIR} && ln -s "Versions/Current/Headers" "Headers")
+  (cd ${FRAMEWORK_DIR} && ln -s "Versions/Current/${FRAMEWORK_NAME}" ${FRAMEWORK_NAME})
 fi
 
 
