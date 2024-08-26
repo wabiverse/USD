@@ -9,7 +9,9 @@ pxr_library(usdUI
         usd
 
     PUBLIC_CLASSES
+        accessibilityAPI
         backdrop
+        localizationAPI
         nodeGraphNodeAPI
         sceneGraphPrimAPI
         tokens
@@ -22,8 +24,10 @@ pxr_library(usdUI
 
     PYMODULE_CPPFILES
         module.cpp
+        wrapAccessibilityAPI.cpp
         wrapBackdrop.cpp
         wrapNodeGraphNodeAPI.cpp
+        wrapLocalizationAPI.cpp
         wrapSceneGraphPrimAPI.cpp
         wrapTokens.cpp
     
@@ -60,4 +64,32 @@ pxr_register_test(testUsdUINodeGraphNode
 pxr_register_test(testUsdUISceneGraphPrim
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdUISceneGraphPrim"
+)
+
+pxr_build_test(testUsdUIAcessibilityAPI
+        LIBRARIES
+        tf
+        usd
+        usdUI
+        CPPFILES
+        testenv/testUsdUIAcessibilityAPI.cpp
+)
+
+pxr_register_test(testUsdUIAcessibilityAPI
+        COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdUIAcessibilityAPI"
+        EXPECTED_RETURN_CODE 0
+)
+
+pxr_build_test(testUsdUILocalizationAPI
+        LIBRARIES
+        tf
+        usd
+        usdUI
+        CPPFILES
+        testenv/testUsdUILocalizationAPI.cpp
+)
+
+pxr_register_test(testUsdUILocalizationAPI
+        COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdUILocalizationAPI"
+        EXPECTED_RETURN_CODE 0
 )
