@@ -211,15 +211,18 @@ def GetDevelopmentTeamID():
     certs = subprocess.check_output(["security", "find-certificate", "-c", codesignID, "-p"])
     subject = GetCommandOutput(["openssl", "x509", "-subject"], input=certs)
     subject = subject.splitlines()[0]
+    match = re.search("OU\s*=\s*(?P<team>([A-Za-z0-9_])+)",  subject)
+    if not match:
+        raise RuntimeError("Could not parse the output certificate to find the team ID")
 
-    # Extract the Organizational Unit (OU field) from the cert
-    try:
-        team = [elm for elm in subject.split(
-            '/') if elm.startswith('OU')][0].split('=')[1]
-        if team is not None and team != "":
-            return team
-    except Exception as ex:
-        raise Exception("No development team found with exception " + ex)
+    groups = match.groupdict()
+    team = groups.get("team")
+
+    if not team:
+        raise RuntimeError("Could not extract team id from certificate")
+
+    return team
+
 
 def CodesignFiles(files):
     codeSignID = GetCodeSignID()
